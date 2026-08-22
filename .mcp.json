@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "mamba-reddit-brand-presence-mapper": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mambalabsdev/mcp-reddit-brand-presence-mapper"
+      ],
+      "env": {
+        "APIFY_TOKEN": "your-apify-token"
+      }
+    }
+  }
+}

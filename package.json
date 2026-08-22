@@ -1,0 +1,48 @@
+{
+  "name": "@mambalabsdev/mcp-reddit-brand-presence-mapper",
+  "version": "1.0.0",
+  "description": "MCP server for the Mamba Labs Reddit Brand Presence and Mention Monitor actor on Apify. Resolve a company domain to its subreddit and sample public mentions of the brand.",
+  "type": "module",
+  "bin": {
+    "mcp-reddit-brand-presence-mapper": "./build/index.js"
+  },
+  "files": [
+    "build",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "scripts": {
+    "build": "tsc && chmod +x build/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "reddit",
+    "social-media",
+    "brand-mentions",
+    "subreddit",
+    "apify",
+    "clay"
+  ],
+  "author": "Mamba Labs <labs@mambamindsetgrowth.com>",
+  "license": "MIT",
+  "homepage": "https://apify.com/mambalabs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mambalabsdev/mcp-reddit-brand-presence-mapper"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.6.0"
+  },
+  "mcpName": "com.mambabuilt/mcp-reddit-brand-presence-mapper"
+}
