@@ -22,7 +22,7 @@ An MCP server that resolves a company domain to its subreddit and samples public
 
 Give it a company domain and it returns that company's subreddit, how alive that subreddit is, and a sample of how much the brand is being talked about across Reddit as a whole. One flat row per company, covering the subreddit URL, subscriber count, posting cadence and a mention sample.
 
-Read this limitation before you build on it. Reddit's RSS routes returned HTTP 403 to Apify platform IP ranges as measured on 2026-08-22, and Reddit returns 403 on every unauthenticated JSON route. Subreddit discovery resolves, but cadence and mention fields can come back marked `blocked` rather than populated. A refusal is reported as `blocked` and never as a zero, so an absence is never mistaken for a finding. Supplying your own Reddit app client id and secret is the only route to a subscriber count.
+Read this limitation before you build on it. Reddit refuses a share of requests however they are routed. Measured on the platform 2026-08-23 across nine companies over residential connections, the subreddit feed was readable for four and refused for five, and the mention feed the same. The public `.rss` feeds are the only open route; Reddit returns 403 on every unauthenticated JSON route. A refusal is reported as `blocked` and never as a zero, so an absence is never mistaken for a finding, and a `blocked` row is worth retrying. Supplying your own Reddit app client id and secret is the only route to a subscriber count.
 
 All of the lookup runs on Apify. This package is a thin client that calls the actor and hands back the result unchanged.
 
