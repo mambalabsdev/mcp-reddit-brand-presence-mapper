@@ -1,0 +1,107 @@
+{
+  "_provenance": {
+    "actorId": "pKQZmDaT70SEb54bZ",
+    "buildId": "xOs4ZYrt7s8g5Ii7O",
+    "buildNumber": "0.2.8",
+    "readAt": "2026-10-05T15:44:50.543Z"
+  },
+  "title": "Reddit Brand Presence and Mention Monitor for Clay Input",
+  "description": "Give a company domain and get its official subreddit, how recently and how often that subreddit is posted in, and a sample of site wide mentions of the brand. Subscriber count requires your own free Reddit app credentials: Reddit closed the public JSON route and this actor says so rather than estimating. Free Apify plan users get 300 results per calendar month, reset monthly. Upgrade to any paid Apify plan for unlimited use: https://apify.com/pricing?fpr=mamba",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "company_domain": {
+      "title": "Company Domain",
+      "type": "string",
+      "description": "Bare company domain, for example shopify.com. Supply this or a handle. With a domain the actor runs full discovery; with a handle it skips straight to the fetch.",
+      "editor": "textfield",
+      "prefill": "shopify.com"
+    },
+    "company_name": {
+      "title": "Company Name",
+      "type": "string",
+      "description": "Optional. Improves search accuracy and is what the identity gate checks a discovered profile against, so supplying it reduces wrong matches.",
+      "editor": "textfield",
+      "prefill": "Shopify"
+    },
+    "handle": {
+      "title": "Subreddit Name",
+      "type": "string",
+      "description": "Optional. The subreddit name with or without the r/ prefix, for example stripe. Supplying it skips discovery.",
+      "editor": "textfield",
+      "prefill": ""
+    },
+    "mentionQuery": {
+      "title": "Brand Mention Search Query",
+      "type": "string",
+      "description": "What to search Reddit for when measuring brand mentions. Defaults to your domain in quotes, which is measured far more precise than the brand name: a bare search for \"stripe\" returns r/Horses and r/MyHeroAcadamia because Reddit matches the English word, while \"stripe.com\" returns developer subreddits.",
+      "editor": "textfield",
+      "prefill": ""
+    },
+    "includeMentions": {
+      "title": "Include Brand Mentions",
+      "type": "string",
+      "description": "When \"true\" (default) a site wide mention sample is pulled alongside the subreddit. Set \"false\" for the official subreddit only, which is one fetch instead of two. Sent as a string for Clay compatibility.",
+      "editor": "select",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumTitles": [
+        "true (subreddit plus brand mention sample)",
+        "false (official subreddit only)"
+      ],
+      "default": "true"
+    },
+    "includeFollowerCounts": {
+      "title": "Include Follower Counts",
+      "type": "string",
+      "description": "When \"true\" (default) the profile page is fetched and the counts are extracted. Set \"false\" to resolve the profile URL only, which is cheaper and needs no proxy. Sent as a string for Clay compatibility.",
+      "editor": "select",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumTitles": [
+        "true (URL plus follower counts)",
+        "false (URL only, cheaper)"
+      ],
+      "default": "true"
+    },
+    "skipCache": {
+      "title": "Skip Cache",
+      "type": "string",
+      "description": "When \"false\" (default) a successful lookup is cached for seven days and reused. Set \"true\" to force a fresh fetch. Sent as a string for Clay compatibility.",
+      "editor": "select",
+      "enum": [
+        "false",
+        "true"
+      ],
+      "enumTitles": [
+        "false (use cache)",
+        "true (force fresh)"
+      ],
+      "default": "false"
+    },
+    "redditClientId": {
+      "title": "Your Reddit App Client ID (optional)",
+      "type": "string",
+      "description": "YOUR OWN Reddit app client id. Free to create at reddit.com/prefs/apps. This is the only route to a subscriber count: Reddit returns 403 on every unauthenticated JSON route. Leave empty and everything else still works.",
+      "editor": "textfield",
+      "isSecret": true
+    },
+    "redditClientSecret": {
+      "title": "Your Reddit App Client Secret (optional)",
+      "type": "string",
+      "description": "YOUR OWN Reddit app client secret, paired with the client id above. Used for your run only and never stored.",
+      "editor": "textfield",
+      "isSecret": true
+    },
+    "source_tag": {
+      "title": "Source Tag",
+      "type": "string",
+      "description": "Internal attribution tag set by Mamba Labs on published task examples. Not required, and nothing depends on it. Leave it empty.",
+      "editor": "textfield"
+    }
+  }
+}
