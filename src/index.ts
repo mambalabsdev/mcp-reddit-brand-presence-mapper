@@ -6,6 +6,16 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
+// Optional per call spending cap, passed through to the actor's own max_charge_usd
+// input. The actor enforces it; this wrapper only forwards it when set.
+const MAX_CHARGE_USD = z
+  .number()
+  .min(0)
+  .optional()
+  .describe(
+    "Optional spending cap for this call, in USD, passed to the actor as max_charge_usd. The run stops before any charge that would take it past this amount and keeps every row already charged. Leave empty to rely only on the maximum charge per run set on your Apify account.",
+  );
+
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(
   readFileSync(join(here, "..", "package.json"), "utf8"),
@@ -77,7 +87,9 @@ async function runActor(
   actorPath: string,
   actorLabel: string,
   input: Record<string, unknown>,
+  maxChargeUsd?: number,
 ): Promise<ToolResult> {
+  if (maxChargeUsd !== undefined) input = { ...input, max_charge_usd: maxChargeUsd };
   const APIFY_TOKEN = process.env.APIFY_TOKEN;
   if (!APIFY_TOKEN) {
     return { isError: true, content: [{ type: "text", text: "APIFY_TOKEN is not set. Create a token at https://console.apify.com/account/integrations and set it as the APIFY_TOKEN environment variable." }] };
@@ -218,7 +230,7 @@ server.registerTool(
       "Resolve a company domain to that company's official subreddit and, optionally, sample recent public mentions of the brand. Returns the subreddit URL, subscriber count, creation date and a mention sample, as one flat Clay ready row. IMPORTANT LIMITATION: Reddit refuses a share of requests however they are routed. Measured on the platform 2026-08-23 across nine companies over residential connections, the subreddit feed was readable for four and refused for five, and the mention feed the same. A refusal is reported as blocked, never as an empty result or a zero, and is worth retrying. Subscriber counts need the caller's own Reddit app credentials (redditClientId and redditClientSecret), because Reddit refuses every unauthenticated JSON route. Use it for one company at a time; it does not monitor Reddit over time or return post text. Read only; requires an APIFY_TOKEN and consumes Apify credits per call.",
     annotations: {
       title: "Map Reddit Brand Presence",
-      readOnlyHint: true,
+      readOnlyHint: false,
       destructiveHint: false,
       idempotentHint: true,
       openWorldHint: true,
@@ -251,9 +263,10 @@ server.registerTool(
       redditClientSecret: z.string()
         .optional()
         .describe("YOUR OWN Reddit app client secret, paired with the client id above. Used for your run only and never stored."),
+      max_charge_usd: MAX_CHARGE_USD,
     },
   },
-  async ({ company_domain, company_name, handle, mentionQuery, includeMentions, includeFollowerCounts, skipCache, redditClientId, redditClientSecret }) => {
+  async ({ company_domain, company_name, handle, mentionQuery, includeMentions, includeFollowerCounts, skipCache, redditClientId, redditClientSecret, max_charge_usd }) => {
     return runActor(
       "pKQZmDaT70SEb54bZ",
       "Reddit Brand Presence and Mention Monitor",
@@ -268,7 +281,7 @@ server.registerTool(
         redditClientId,
         redditClientSecret,
       }),
-    );
+     max_charge_usd,);
   },
 );
 
