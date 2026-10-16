@@ -14,6 +14,7 @@ An MCP server that resolves a company domain to its subreddit and samples public
 - [Output](#output)
 - [Example output](#example-output)
 - [Features](#features)
+- [Pricing](#pricing)
 - [Full actor documentation](#full-actor-documentation)
 - [Mamba Labs GTM Suite](#mamba-labs-gtm-suite)
 - [License](#license)
@@ -72,6 +73,7 @@ Get your token at https://console.apify.com/account/integrations, paste it in, a
 - `skipCache` (optional): when false (the default) a successful lookup is cached for seven days and reused. Set true to force a fresh fetch.
 - `redditClientId` (optional): your own Reddit app client id, free to create at reddit.com/prefs/apps. This is the only route to a subscriber count, because Reddit returns 403 on every unauthenticated JSON route. Leave it empty and everything else still works.
 - `redditClientSecret` (optional): your own Reddit app client secret, paired with the client id above. Used for your run only and never stored.
+- `max_charge_usd` (optional): spending cap for this call, in USD. The actor stops before any charge that would take the run past this amount and keeps every row already charged.
 
 Supply either `company_domain` or `handle`.
 
@@ -115,6 +117,19 @@ The tool returns the actor's flat JSON row for the company, with 26 snake_case f
 - A refused request is reported as `blocked`, never as a zero
 - Your own Reddit app credentials unlock the subscriber count
 - 26 flat snake_case fields, one row per company
+
+## Pricing
+
+You pay per event on Apify, billed to your own Apify account. Prices from the live pricing record, read 2026-10-16:
+
+| Event | Price per event (USD) | Fires when |
+| --- | --- | --- |
+| `apify-actor-start` | $0.00005 | Charged when the Actor starts running. Number of events charged depends on Actor memory (one event per GB, minimum one event). |
+| `company-checked` | $0.0095 on the Free plan, down to $0.00665 on higher Apify plans | Once per company for which the discovery cascade completed and a non degraded row was produced, whether or not a subreddit was found. Does not fire on a degraded row. |
+| `profile-resolved` | $0.0065 on the Free plan, down to $0.00455 on higher Apify plans | Once per company whose candidate subreddit passed the identity gate and returned a readable public feed. Fires on the validation work, not on a populated subscriber cell. |
+| `mention-sample-collected` | $0.008 on the Free plan, down to $0.0056 on higher Apify plans | Once per company for which the site wide mention feed returned at least one mention. A search that Reddit rate limited, or that returned nothing, does not charge. Never fires when mentions are turned off. |
+
+The [actor's Apify page](https://apify.com/mambalabs/reddit-brand-presence-mapper) carries the current prices. Running this server consumes Apify credits.
 
 ## Full actor documentation
 
