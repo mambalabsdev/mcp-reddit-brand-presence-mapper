@@ -5,7 +5,8 @@
 // expected input list from this file, never from the tool, so a field the actor
 // gains and the tool lacks turns the test red.
 //
-// Usage: APIFY_TOKEN=... node scripts/sync-input-schema-fixture.mjs
+// Usage: APIFY_TOKEN=... [BUILD_TAG=beta] node scripts/sync-input-schema-fixture.mjs
+// BUILD_TAG defaults to latest. Use beta to read a build before it is tagged latest.
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -24,8 +25,9 @@ const get = async (url) => {
 };
 
 const act = await get(`https://api.apify.com/v2/acts/${ACTOR_ID}`);
-const latest = act.taggedBuilds?.latest;
-if (!latest?.buildId) throw new Error("the actor has no latest tagged build");
+const TAG = process.env.BUILD_TAG || "latest";
+const latest = act.taggedBuilds?.[TAG];
+if (!latest?.buildId) throw new Error(`the actor has no ${TAG} tagged build`);
 const build = await get(`https://api.apify.com/v2/actor-builds/${latest.buildId}`);
 const input = build.actorDefinition?.input;
 if (!input?.properties) throw new Error("the build carries no input schema");

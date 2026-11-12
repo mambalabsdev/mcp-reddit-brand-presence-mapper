@@ -227,7 +227,7 @@ server.registerTool(
   {
     title: "Map Reddit Brand Presence",
     description:
-      "Resolve a company domain to that company's official subreddit and, optionally, sample recent public mentions of the brand. Returns the subreddit URL, subscriber count, creation date and a mention sample, as one flat Clay ready row. IMPORTANT LIMITATION: Reddit refuses a share of requests however they are routed. Measured on the platform 2026-08-23 across nine companies over residential connections, the subreddit feed was readable for four and refused for five, and the mention feed the same. A refusal is reported as blocked, never as an empty result or a zero, and is worth retrying. Subscriber counts need the caller's own Reddit app credentials (redditClientId and redditClientSecret), because Reddit refuses every unauthenticated JSON route. Use it for one company at a time; it does not monitor Reddit over time or return post text. Read only; requires an APIFY_TOKEN and consumes Apify credits per call.",
+      "Resolve a company domain to that company's subreddit and report its posting cadence, recency, and subscriber count, plus, with the caller's own Serper or Brave search key, a sample of site wide brand mentions. One flat Clay ready row per company. STATUS 12 November 2026: Reddit closed logged out search and ends RSS on 13 November 2026, so actor version 0.3 reads no RSS. The subreddit and its 25 newest posts come from Arctic Shift, a free public archive of Reddit (no key, about 15 minutes behind live Reddit, searches only inside a named subreddit). Mentions across all of Reddit need search_api_key. reddit_route picks the main route (arctic_shift, search_key, both); when it fails or cannot run and the other can, the run switches on its own and says so in route_note, and data_route names the source on every row. Reddit app credentials (redditClientId, redditClientSecret) give a live subscriber count only for apps Reddit approved before 2026-10-31; that route ends when Reddit closes its API by March 2027. A blocked run charges only the start fee. Read only; requires an APIFY_TOKEN and consumes Apify credits per call.",
     annotations: {
       title: "Map Reddit Brand Presence",
       readOnlyHint: false,
@@ -239,45 +239,61 @@ server.registerTool(
       company_domain: z.string()
         .optional()
         .describe("Bare company domain, for example shopify.com. Supply this or a handle. With a domain the actor runs full discovery; with a handle it skips straight to the fetch."),
+      company_domains: z.array(z.string())
+        .optional()
+        .describe("Optional. A list of bare company domains. Each becomes its own row, so a list of 500 is one run and one start charge instead of 500."),
       company_name: z.string()
         .optional()
         .describe("Optional. Improves search accuracy and is what the identity gate checks a discovered profile against, so supplying it reduces wrong matches."),
       handle: z.string()
         .optional()
-        .describe("Optional. The subreddit name with or without the r/ prefix, for example stripe. Supplying it skips discovery."),
+        .describe("Optional. The subreddit name with or without the r/ prefix, for example stripe. Skips discovery. Read from Arctic Shift, no key needed."),
       mentionQuery: z.string()
         .optional()
-        .describe("What to search Reddit for when measuring brand mentions. Defaults to your domain in quotes, which is measured far more precise than the brand name: a bare search for \"stripe\" returns r/Horses and r/MyHeroAcadamia because Reddit matches the English word, while \"stripe.com\" returns developer subreddits."),
+        .describe("What to search for site wide brand mentions. Needs search_api_key, because Arctic Shift searches only inside a named subreddit. Defaults to the domain in quotes, which is more precise than the brand name."),
       includeMentions: z.boolean()
         .optional()
-        .describe("When \"true\" (default) a site wide mention sample is pulled alongside the subreddit. Set \"false\" for the official subreddit only, which is one fetch instead of two. Sent as a string for Clay compatibility."),
+        .describe("true (default) pulls a mention sample when a search key is given; without one the row says needs_search_key and charges nothing for mentions. false for the subreddit only."),
       includeFollowerCounts: z.boolean()
         .optional()
-        .describe("When \"true\" (default) the profile page is fetched and the counts are extracted. Set \"false\" to resolve the profile URL only, which is cheaper and needs no proxy. Sent as a string for Clay compatibility."),
+        .describe("Kept so saved calls still validate. Has no effect in actor version 0.3."),
       skipCache: z.boolean()
         .optional()
-        .describe("When \"false\" (default) a successful lookup is cached for seven days and reused. Set \"true\" to force a fresh fetch. Sent as a string for Clay compatibility."),
+        .describe("Kept so saved calls still validate. Has no effect in actor version 0.3."),
+      reddit_route: z.enum(["arctic_shift", "search_key", "both"])
+        .optional()
+        .describe("Main route. arctic_shift (default): free Arctic Shift archive, no key. search_key: the caller's Serper or Brave key searches site:reddit.com for the subreddit and mentions. both: use both and merge. The run falls back to the other route on its own when the main one fails and the other can run. With no key, every choice runs as arctic_shift."),
+      search_provider: z.enum(["serper", "brave"])
+        .optional()
+        .describe("The provider of search_api_key: serper (serper.dev) or brave (Brave Search API). Defaults to serper when a key is given."),
+      search_api_key: z.string()
+        .optional()
+        .describe("The caller's own Serper or Brave Search API key. Needed for brand mentions across all of Reddit. Used for that run only, never stored, never written to a row. The provider bills the caller for up to 2 searches per company."),
       redditClientId: z.string()
         .optional()
-        .describe("YOUR OWN Reddit app client id. Free to create at reddit.com/prefs/apps. This is the only route to a subscriber count: Reddit returns 403 on every unauthenticated JSON route. Leave empty and everything else still works."),
+        .describe("Optional. The caller's own Reddit app client id, for a live subscriber count and as a fallback when Arctic Shift fails. Only for apps Reddit approved before 2026-10-31, when Reddit stopped approving new apps; this route ends when Reddit closes its API by March 2027."),
       redditClientSecret: z.string()
         .optional()
-        .describe("YOUR OWN Reddit app client secret, paired with the client id above. Used for your run only and never stored."),
+        .describe("The caller's own Reddit app client secret, paired with the client id. Used for that run only and never stored."),
       max_charge_usd: MAX_CHARGE_USD,
     },
   },
-  async ({ company_domain, company_name, handle, mentionQuery, includeMentions, includeFollowerCounts, skipCache, redditClientId, redditClientSecret, max_charge_usd }) => {
+  async ({ company_domain, company_domains, company_name, handle, mentionQuery, includeMentions, includeFollowerCounts, skipCache, reddit_route, search_provider, search_api_key, redditClientId, redditClientSecret, max_charge_usd }) => {
     return runActor(
       "pKQZmDaT70SEb54bZ",
       "Reddit Brand Presence and Mention Monitor",
       compact({
         company_domain,
+        company_domains,
         company_name,
         handle,
         mentionQuery,
         includeMentions: boolToString(includeMentions),
         includeFollowerCounts: boolToString(includeFollowerCounts),
         skipCache: boolToString(skipCache),
+        reddit_route,
+        search_provider,
+        search_api_key,
         redditClientId,
         redditClientSecret,
       }),
