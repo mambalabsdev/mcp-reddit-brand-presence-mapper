@@ -3,7 +3,7 @@
     "actorId": "pKQZmDaT70SEb54bZ",
     "buildId": "db7F1t6VkvCA9gVWe",
     "buildNumber": "0.3.5",
-    "readAt": "2026-11-12T16:35:59.843Z"
+    "readAt": "2026-11-12T17:51:01.644Z"
   },
   "title": "Reddit Brand Presence Mapper Input",
   "description": "Give a company domain and get its official subreddit, how recently and how often it is posted in, and a sample of site wide brand mentions. Status, 12 November 2026: Reddit closed logged out search and ends RSS on 13 November 2026, so this version reads the Arctic Shift public archive (no key) for the subreddit, and your own Serper or Brave key for mentions across all of Reddit. A blocked run charges only the start fee. Free Apify plan users get 300 results per calendar month, reset monthly. Upgrade to any paid Apify plan for unlimited use: https://apify.com/pricing?fpr=mamba",
